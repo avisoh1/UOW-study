@@ -1,0 +1,292 @@
+<html>
+    <head>
+        <!-- Title of the webpage -->
+        <title>A2-G2T20-8496845,8750622,8465678(Ling,Hong,Avis)</title>
+
+        <!-- Styling for the page -->
+        <style>
+            /* CSS for the container element, 
+                setting its width and padding */
+            .container {
+                width: 70%;
+                margin: auto;
+                padding: 20px;
+				font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+            }
+			/* CSS for the table1 element, 
+                setting its width and height */
+            .tablep1 {
+                border: 1px solid black;
+                width: 700px; 
+                height: 180px;
+            }
+
+            /* CSS for the table header cells, 
+                setting its height, font, background and text-align */
+            .tablep1 th {
+                border: 1px solid black;
+                height: 50px;
+                font-size:17pt;
+                background-color:rgb(194, 219, 241); 
+                text-align:center;
+            }
+			
+			/* CSS for table data cells, 
+                defining font properties, text alignment, and padding */
+            .tablep1 td{
+                border: 1px solid black;
+                font-size:14pt;
+                text-align:left;
+                padding-left:1%;
+            }
+            
+            /* CSS for the table2 element, 
+                setting its width and height */
+            .tablep2{
+                font-family:Arial, Helvetica, sans-serif;
+                border-collapse: collapse;
+                width: 700px; 
+                height: 180px;
+				table-layout: fixed; 
+            }
+        
+            .tdp2{
+                border:1px solid ;
+                height: 50px;
+                text-align: centre;
+                padding: 10px;
+            
+            }
+
+            .thp2{
+                border:1px solid black;
+				text-align: centre;
+				padding:10px;
+				border-collapse: collapse;
+				background-color:rgb(242, 198, 164);
+             }
+            
+             /* CSS for start and stop button column */
+            .game_button_column{
+				border: 1px solid black;
+				background-color:rgb(144,238,144);
+				text-align:center;
+				height: 50px;
+			}
+
+			/* CSS for start and stop button */
+			.button{
+				text-align:center;
+				font-size: 14pt;
+				background: none;
+				border: none;
+			}
+            
+            /* CSS for currentNo column */
+            #currentNo{
+                background-color: lightblue;  
+            }
+            
+            /* CSS for chosenNum column */
+            #chosenNum{
+                background-color: lightblue;
+             }
+            
+            /* CSS for number 1 column */
+            #number1{
+                border: 1px solid black;
+                color: burlywood;
+                font-size: large;
+                text-align: center;
+             }
+            
+            /* CSS for number 2 column */
+            #number2{
+                border: 1px solid black;
+                color: blue;
+                font-size: large;
+                text-align: center;
+             }
+            
+            /* CSS for number 3 column */
+            #number3{
+                border: 1px solid black;
+                color: green;
+                font-size: large;
+                text-align: center;
+             }
+        </style>
+    </head>
+
+    <body>
+        <!-- Main container for the content -->
+        <div class="container">
+            <!----------------------------------PART 1-------------------------------------->            
+            <h1>Part 1:</h1>
+            <!-- Table for displaying assignment and group information -->
+            <div>
+                <table class="tablep1" >
+                <!-- Header row with assignment and group details -->
+                <tr>
+                    <th colspan="3"><b>CSIT128: Assignment 2</b></th>
+                    <th>Group G2T20</th>
+                    </tr>
+                        
+                    <!-- Student details row 1 -->
+                    <tr>
+                        <td rowspan="3" style="width:190px;">Student Number / Name / Email</td>  
+                        <td width="100px">8465678</td>
+                        <td>Avis Oh Xin Wan</td>
+                        <td>axwo136@uowmail.edu.au</td>
+                    </tr>
+                                            
+                    <!-- Student details row 2 -->
+                    <tr>
+                        <td style="width:100px;">8496845</td>
+                        <td>Tan Kai Ling</td>
+                        <td>klt084@uowmail.edu.au</td>
+                    </tr>
+                    <!-- Student details row 3 -->
+                    <tr>
+                        <td width="100px">8750622</td>
+                        <td>Tan Zhang Hong</td>
+                        <td>zht078@uowmail.edu.au</td>
+                    </tr>
+                </table>
+        <br/><br/><br/>
+            </div> 
+        
+<h1> Part 2: Random Game</h1>
+<!--Here is the main table with the game-->
+
+
+    <table class="tablep2">
+        <tr>
+            <th colspan="3" class="thp2"><h2>Part 2: Game</h2></th>
+            <!--First column that will show the title of the game, use span, it will spread across 3 cells-->
+
+        <tr>
+            <td class="tdp2" style="background-color: rgb(215, 232, 253);"><b>Your Chosen Number: </b></td>
+            <!--This td will create a cell will the given background color, with the text current number:-->
+
+
+            <!--Below this portion is a td that would have a drop down list. As we can see the values are all--> 
+            <!--defined, 4 is selected as default value-->
+            <td class="tdp2" id = "chosenNum" style="background-color: rgb(215, 232, 253);">  
+                <select id="selectNo">
+                    
+                    <option value="3" >3</option>
+                    <option value="4" selected>4</option>
+                    <option value="5" >5</option>
+                    <option value="6" >6</option>
+                    <option value="7" >7</option>   
+                    
+                </select>
+
+            </td>
+            <!--Here os a td that would show the current score, these will be used in javascript later -->
+            <td class="tdp2" id = "currentScore" style="background-color: rgb(254, 242, 208);" ><b>Current Score: </b></td>
+        </tr>
+
+        <!--Below is the buttons, where it is centered in the tr and when the button is clicked it will execute the-->
+        <!--function of startGame or stopGame() in the Javascript-->
+
+        <tr class="game_button_column">
+            <td colspan="3" style = "text-align: center;" class="tdp2">
+            <button class="button" onclick = "startGame()">&lt;Start Game Button&gt;</button>
+            <button class="button" onclick = "stopGame()">&lt;Stop Game Button&gt;</button>
+            </td>
+        </tr>
+        
+        <!--Here is the number for the random numbers that will be generated, there is an onclick, once it's clicked,-->
+        <!-- it will go to the function checker.-->
+        <tr>
+            <td class="tdp2" id="number1" onclick="checker(this.innerHTML)">&lt;1<sup>st</sup> number&gt;</td>
+            <td class="tdp2" id="number2" onclick="checker(this.innerHTML)">&lt;2<sup>nd</sup> number&gt;</td>
+            <td class="tdp2" id="number3" onclick="checker(this.innerHTML)">&lt;3<sup>rd</sup> number&gt;</td>
+        </tr>
+    </table>
+    </div>
+    <script>
+    
+		// Here we created a global variable called score so that it can be used later, where either it being 
+		// used to reset the score to 0 or added when the condition is right
+		var score = 0;
+		// here is the function of start game, when user clicks on the startGame button, this function will be acivated
+		function startGame() {
+
+			// disabled the dropdown list
+			document.getElementById("selectNo").disabled = true;
+			//Whenever startgame is being activated the score will be resetted to 0
+			score = 0     
+			//Here when the number is clicked, it will activate the function checker
+			document.getElementById("number1").onclick = function() { checker(this.innerHTML); }; 
+			document.getElementById("number2").onclick = function() { checker(this.innerHTML); };
+			document.getElementById("number3").onclick = function() { checker(this.innerHTML); };
+		
+			function uniqueNumber(){
+
+			//Here we make sure that the random number is being generated 
+			var number1 = Math.floor(Math.random() * (8 - 3)) + 3
+			var number2 = Math.floor(Math.random() * (8 - 3)) + 3
+			var number3 = Math.floor(Math.random() * (8 - 3)) + 3
+
+			// here it compares the numbers, if numbers are same, it will continue to execute the function, 
+			// else statement to display the numbers that are unique
+			if (number1 == number2 || number1 == number3 || number2 == number3){
+				return uniqueNumber();
+
+			}
+			else{
+				document.getElementById("number1").innerHTML = number1
+				document.getElementById("number2").innerHTML = number2
+				document.getElementById("number3").innerHTML = number3
+			}
+
+			}
+
+		
+		//here we set a interval, that every 2 seconds the uniqueNumber function will run 
+		interval =   setInterval(uniqueNumber, 2000);
+		function intervalGenerator(){
+			interval
+		}
+
+		intervalGenerator();}
+				
+
+		// Here is the function for the stopGame 
+		function stopGame() {
+			document.getElementById("selectNo").disabled = false; // dropdownlist will be able to pressed again. 
+			
+			
+			clearInterval(interval) // clear the numbers that are generating every 2 seconds
+			// when the numbers are being clicked here it will not activate the checker function
+			document.getElementById("number1").onclick = null;  
+			document.getElementById("number2").onclick = null;
+			document.getElementById("number3").onclick = null;
+		}
+		
+		function checker(clickedNumber) {
+
+				//Putting the clicked number red. 
+				var color = "red"
+				
+				// Get the selected number from the dropdown
+				var selectedNumber = document.getElementById("selectNo").value;
+				
+				// Compare the clicked number with the selected number
+				if (clickedNumber == selectedNumber) {
+					score += 3; // Increase score by 3 if they match
+				} else {
+					score -= 2; // Decrease score by 2 if they don't match
+				}
+
+				// Update the score display
+				
+				document.getElementById("currentScore").innerHTML = "Current Score: <span style='color:" + color 
+					+ "; font-weight: bold; font-size: 1.5em;'>" + score + "</span>";
+			}
+    </script>
+</html>

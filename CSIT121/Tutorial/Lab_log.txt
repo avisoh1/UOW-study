@@ -1,0 +1,5 @@
+Error for c11: could not convert string to float: 'XX\n'
+Error for c13: could not convert string to float: 'yy\n'
+Error for c18: Mark must be chosen between 0 and 100.
+Error for c19: Mark must be chosen between 0 and 100.
+Error for c20: Mark must be chosen between 0 and 100.

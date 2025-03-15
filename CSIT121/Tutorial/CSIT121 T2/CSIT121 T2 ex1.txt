@@ -1,0 +1,34 @@
+<diagram program="umletino" version="15.1"><zoom_level>10</zoom_level><help_text>This is a 
+</help_text><element><id>UMLClass</id><coordinates><x>150</x><y>80</y><w>200</w><h>220</h></coordinates><panel_attributes>&lt;&lt;Model&gt;&gt;
+Note
+-
+_NEXT_ID : int_
+-id: int
+-memo: string
+-tags: string
+-creation_date: date
+-
++init(memo, tags)
++getId(): int
++setMemo(memo)
++setTags(tags)
++match(filter): bool
++__str__(): str
+
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>560</x><y>100</y><w>200</w><h>190</h></coordinates><panel_attributes>&lt;&lt;Controller&gt;&gt;
+Notebook
+-
+-notes: list&lt;Note&gt;
+
+-
++init()
++newNote(memo, tags)
++findNote(id): Note
++modifyMemo(id, memo): bool
++modifyTags(id, tags): bool
++search(filter): list&lt;Note&gt;
++__str__(): str
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>340</x><y>180</y><w>240</w><h>50</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+contains
+m1=1
+m2=0..n</panel_attributes><additional_attributes>220;20;10;20</additional_attributes></element></diagram>

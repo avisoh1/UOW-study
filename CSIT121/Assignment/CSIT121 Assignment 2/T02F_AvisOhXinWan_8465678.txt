@@ -1,0 +1,544 @@
+# Name: Avis Oh Xin Wan
+# Class: T02F
+# UOW ID: 8465678
+# CSIT121 Assignment 2
+
+from abc import ABC, abstractmethod
+
+class Course:
+    def __init__(self,code,name,credit):
+        """The constructor that initialise the attributes of class Course"""
+        self.__code = code
+        self.__name = name
+        self.__credit = credit
+
+    @property
+    def code(self):
+        return self.__code
+    
+    @property
+    def credit(self):
+        return self.__credit
+    
+    def __str__(self):
+        return f"Course:{self.__code} {self.__name}\nCredit: {self.__credit}"
+
+class Student:
+    def __init__(self,id,name):
+        """The constructor that initialise the attributes of class Student"""
+        self.__id = id
+        self.__name = name
+    
+    @property
+    def id(self):
+        return self.__id
+    
+    def __str__(self):
+        return f"\nStudent ID: {self.__id}\nStudent Name: {self.__name}\n"
+    
+class Result(ABC):
+    _GRADE_SCALE = {
+        95: (4.0, "A"),
+        90: (3.7, "A-"),
+        85: (3.3, "B+"),
+        80: (3.0, "B"),
+        75: (2.7, "B-"),
+        70: (2.3, "C+"),
+        65: (2.0, "C"),
+        60: (1.7, "C-"),
+        55: (1.3, "D+"),
+        50: (1.0, "D"),
+        45: (0.7, "D-"),
+        0: (0.0, "F")
+    }
+    
+    def __init__(self, student: Student, course: Course):
+        """The constructor that initializes the attributes of class Result"""
+        self.__student = student
+        self.__course = course
+        
+    @property
+    def student_id(self):
+        return self.__student.id
+
+    @property
+    def course(self):
+        return self.__course
+    
+    def get_grade_point(self):
+        """Calculate grade and point based on overall_score using class variable GRADE_SCALE."""
+        for min_score, (points, letter) in Result._GRADE_SCALE.items():
+            if self.get_score() >= min_score:
+                grade = letter
+                point = points  
+                break
+        return grade,point
+
+    @abstractmethod
+    def get_score(self):
+        """This method will compute and return the overall score. It will be overridden."""
+        pass
+    
+    @classmethod
+    def get_gpa(cls, results):
+        """This method computes and returns the GPA for a collection of results."""
+        total_credits = 0
+        total_points = 0
+        points_awarded_str = ""
+        display_gpa = "{0:<12}{1:^5}\t{2:^17}\t{3}{4:^15}".format("Course Code","Grade","Credit"," "*10,"Points awarded")
+
+        # Loop through each result and calculate GPA
+        
+        for i, result in enumerate(results):
+            grade,grade_points = result.get_grade_point()
+            points_awarded = round((grade_points * result.course.credit), 2)
+            
+            if i == len(results) - 1:
+                points_awarded_str += str(points_awarded)
+            else:
+                points_awarded_str += str(points_awarded) + " + "
+                
+            total_credits += result.course.credit
+            total_points += grade_points * result.course.credit
+            rounded_total_points = round(total_points,2)
+            gpa = round((total_points / total_credits),2)
+            display_gpa += "\n{0:<11}{1:^8}\t{2:^17}\t{3}{4:>.1f} {5} {6} {7} {8}".format(result.course.code,grade,result.course.credit," "*10,grade_points,"X",result.course.credit, "=",points_awarded)
+            
+        display_gpa += "\n{0}\t{1:^6}\t{2:^15}".format(" "*17,"Total credits: " + str(total_credits),"Total Points: " + points_awarded_str + " = " + str(rounded_total_points))
+        display_gpa += "\n{0:<25}\t{1}\t{2}".format(" "*44,"GPA: " , str(rounded_total_points) + " / "+ str(total_credits) + " = " + str(gpa))
+        return display_gpa
+    
+    def __str__(self):
+        return f"{self.__student}\nCourse Code: {self.__course.code}\n"
+    
+class PracticalResult(Result):
+    def __init__(self, student, course, p_score1, p_score2, p_score3):
+        """
+        The constructor that initialise the attributes of class PracticalResult
+        Inherit student and course object from Result class
+        """
+        super().__init__(student, course)
+        self.__p_score1 = p_score1
+        self.__p_score2 = p_score2
+        self.__p_score3 = p_score3
+
+    def get_score(self):
+        self.overall_score = round(((self.__p_score1 + self.__p_score2 + self.__p_score3) / 3),2)
+        return self.overall_score
+
+    def __str__(self):
+        grade, _ = self.get_grade_point()
+        return (super().__str__() + 
+                f"Practical Scores: {self.__p_score1}, {self.__p_score2}, {self.__p_score3}\n" +
+                f"Overall score: {self.get_score()}\nGrade: {grade}")
+
+class CourseResult(Result):
+    def __init__(self, student, course, cw_score, ex_score):
+        """
+        The constructor that initialise the attributes of class CourseResult
+        Inherit student and course object from Result class
+        """
+        super().__init__(student, course)
+        self.__cw_score = cw_score
+        self.__ex_score = ex_score
+
+    def get_score(self):
+        self.overall_score = round((self.__cw_score * 0.3 + self.__ex_score * 0.7),2)
+        return self.overall_score
+
+    def __str__(self):
+        grade, _ = self.get_grade_point()
+        return (super().__str__() + 
+                f"Course work score: {self.__cw_score}, Exam score: {self.__ex_score}\n" +
+                f"Overall score: {self.get_score()}\nGrade: {grade}")
+
+class WrongStudentError (Exception):
+    """ Exception handling for student id not in students list"""
+    pass
+    
+class WrongCourseError (Exception):
+    """ Exception handling for student id not in courses list"""
+    pass
+class ExistResultError (Exception):
+    """ Exception handling for those result that already exist"""
+    pass
+        
+class AcadTerm:
+    def __init__(self, term, start_date, end_date,results=[]):
+        """The constructor that initializes the attributes of class AcadTerm"""
+        self.__term = term
+        self.__start_date = start_date
+        self.__end_date = end_date
+        self.__results = results
+        self.__students = []
+        self.__courses = []
+
+    def add_student(self, student):
+        """Adds a student to the collection."""
+        for s in self.__students:
+            if student.id == s.id:
+                return False
+        self.__students.append(student)
+        return True
+
+    def add_course(self, course):
+        """Adds a course to the collection."""
+        for c in self.__courses:
+            if course.code == c.code:
+                return False
+        self.__courses.append(course)
+        return True
+        
+    def student_list(self, course_code):
+        """Return a list of students enrolled in a specific course by course_code."""
+        students_in_course = []  
+        
+        # Loop through each result and check for matching course code
+        for result in self.__results:
+            if result.course.code.lower() == course_code.lower():
+                students_in_course.append(f"Student ID: {result.student_id}")
+        
+        return students_in_course  
+         
+    @property
+    def term(self):
+        return self.__term
+
+    def add_result(self, result):
+        """
+        Adds a result (object of Result subclasses) to the academic term.
+        Ensures that the student and course exist in the term before adding.
+        """
+        # Check if the student and course are in the term's collections, return exception handling if error
+        for s in self.__students:
+            if result.student_id == s.id:
+                break
+        else:
+            raise WrongStudentError("Student is not registered in this term.")
+        
+        for c in self.__courses:
+            if result.course.code == c.code:
+                break
+        else:
+                raise WrongCourseError("Course is not registered in this term.")
+        
+        # Check for duplicates in the results list, return exception handling if error
+        for existing_result in self.__results:
+            if existing_result.student_id == result.student_id and existing_result.course == result.course:
+                raise ExistResultError("Result for this student and course already exists.")
+        
+        # Add the result if all checks pass
+        self.__results.append(result)
+        return True 
+
+    def remove_result(self,student_id,course_code):
+        """
+        Given the student id and course code, this method will remove the matching result from the academic term.
+        """
+        for r in self.__results:
+            # result will be removed if the student id and course code are match
+            if r.student_id == student_id and r.course.code.lower() == course_code.lower():
+                self.__results.remove(r)
+                return True
+        return False
+    
+    def get_result(self, student_id, course_code=None):
+        """
+        Returns results for a student. If `course_code` is provided,
+        only returns the result for that specific course.
+        """
+        results = [result for result in self.__results if result.student_id == student_id]
+        
+        # Filter further by course code if specified
+        if course_code:
+            results = [result for result in results if result.course.code.lower() == course_code.lower()]
+        
+        return results
+
+    def get_result_summary(self):
+        """
+        This method will return the summary result academic term. 
+        The summary result includes: 
+        - term 
+        - number of passes 
+        - number of failures
+        """
+        # Calculate the pass and fail number
+        num_fail = sum(1 for result in self.__results if result.get_grade_point()[0] == "F")
+        num_pass = len(self.__results) - num_fail
+        return f"Term: {self.term}\nStart Date: {self.__start_date}\nEnd Date: {self.__end_date}\nPasses: {num_pass}\nFailures: {num_fail}"
+    
+    def __str__(self):
+        return f"Academic Term: {self.__term}\nStart Date: {self.__start_date}\nEnd Date: {self.__end_date}"
+
+
+def main():
+    try:
+	# Create Course and Student objects
+        course1 = Course("CSIT121", "Object-Oriented Programming", 6)
+        course2 = Course("CSIT128", "Web Programming", 6)
+        course3 = Course("CSIT127", "Networking", 4)
+        course4 = Course("CSIT123", "Cybersecurity Fundamental", 4)
+        student1 = Student("1", "Andy")
+        student2 = Student("2", "Ken")
+        student3 = Student("3","Jane")
+        student4 = Student("4","Jenny")
+        
+        # Create an academic term and add students and courses
+        term = AcadTerm("2024 Q1", "2024-01-01", "2024-03-31")
+        term.add_student(student1)
+        term.add_student(student2)
+        term.add_student(student3)
+        term.add_course(course1)
+        term.add_course(course2)
+        term.add_course(course3)
+        term.add_course(Course("CSIT127", "Networking", 4))     # return False
+
+        # Create and add results
+        result1 = PracticalResult(student1, course1, 90, 85, 90)
+        result2 = PracticalResult(student2, course1, 90, 85, 80)
+        result3 = CourseResult(student1, course2, 80, 95)
+        result4 = CourseResult(student3, course2, 85, 97)
+        result5 = CourseResult(student3, course3, 75, 77)
+        result6 = CourseResult(student1, course3, 89, 97)
+        result7 = CourseResult(student2, course3, 0, 10)
+        term.add_result(result1)
+        term.add_result(result2)
+        term.add_result(result3) 
+        term.add_result(result4)
+        term.add_result(result5)
+        term.add_result(result6)    
+        term.add_result(result7) 
+
+        # Delete result
+        remove_result = term.remove_result(student3.id, course3.code)   # return True if removed successfully
+        print(remove_result)
+	
+	# Add existing result
+        term.add_result(CourseResult(student1, course3, 89, 97)) # raise ExistResultError 
+
+        # Add student not in student list
+        result8 = CourseResult(student4, course3, 85, 77)        # raise WrongStudentError
+        term.add_result(result8)
+
+        # Add course not in course list
+        result9 = CourseResult(student3, course4, 85, 77)        # raise WrongCourseError
+        term.add_result(result9)
+        
+    except ExistResultError as e:
+        print ("ExistResultError: ", e)
+    except WrongStudentError as e:
+        print ("WrongStudentError: ", e)
+    except WrongCourseError as e:
+        print ("WrongCourseError: ", e)
+    except Exception as e:
+        print("something wrong",e)
+    finally:
+        print ('-' * 50)
+
+        # Choose 1 to search a student result
+        def search_result():
+            # Check a result by student ID and course code
+            student_id = input("\nEnter student ID to search: ")
+        
+            course_code = input("Enter course code to search: ")
+            if course_code == "":
+                result= term.get_result(student_id)
+            else:
+                result = term.get_result(student_id, course_code)
+
+            if result:
+                print("\nResult found:")
+                for res in result:
+                    print(res)
+            else:
+                print("No record found.\n")
+
+        # Choose 2 to display student list of a specific course
+        def display_student_list():
+            course_code = input("\nEnter course code to get student list: ")
+            
+            students = term.student_list(course_code)
+            if students:
+                print("Students in course:", course_code)
+                for student in students:
+                    print(student)
+            else:
+                print("No students enrolled in this course.")
+
+        # Choose 3 to display pass and fail number of a term
+        def display_result_summary():
+            # Print pass and failure summary
+            print(term.get_result_summary())
+
+        # Choose 4 display student GPA
+        def display_student_gpa():
+            # Check a result by student ID 
+            student_id = input("\nEnter student ID to search: ")   
+            result= term.get_result(student_id)
+            print(f"\nStudent: {student_id}")
+            if result:
+                gpa = Result.get_gpa(result)
+                print(f"\n{gpa}") 
+            else:
+                print("No record found.\n")
+
+        while True:
+            # Display menu
+            print("\n----- Menu -------\
+            \n1. Search student result\
+            \n2. Display student list of a subject\
+            \n3. Get result summary\
+            \n4. Get student GPA\
+            \n5. Quit")
+
+            # Let user enter his/her choice
+            command = input("\nEnter your choice: ")
+
+            # Type a number to go for specific function
+            if command == "1":
+                search_result()
+            elif command == "2":
+                display_student_list()
+            elif command == "3":
+                display_result_summary()
+            elif command == "4":
+                display_student_gpa()
+            elif command == "5":
+                print("Exit.")
+                break
+            else:
+                print("Wrong input")
+
+if __name__ == "__main__":
+    main()
+
+################################################################################################
+
+Scenario 1: True will be returned if the result removed successfully
+input:
+# Delete result
+remove_result = term.remove_result(student3.id, course3.code)   # return True if removed successfully
+print(remove_result)
+
+Output:
+True
+
+--------------------------------------------------------------------------------
+
+Scenario 2: Exception handling when adding duplicate result
+
+ExistResultError:  Result for this student and course already exists.
+
+--------------------------------------------------------------------------------
+
+Scenario 3: Exception handling when add student not included in the student list
+
+WrongStudentError:  Student is not registered in this term.
+
+--------------------------------------------------------------------------------
+
+Scenario 4: Exception handling when add course not included in the course list
+
+WrongCourseError:  Course is not registered in this term.
+
+--------------------------------------------------------------------------------
+
+Scenario 5: Press 1 in menu to search student result
+
+--------------------------------------------------
+
+----- Menu -------
+1. Search student result
+2. Display student list of a subject
+3. Get result summary
+4. Get student GPA
+5. Quit
+
+Enter your choice: 1
+
+Enter student ID to search: 1
+Enter course code to search: csit121
+
+Result found:
+
+Student ID: 1
+Student Name: Andy
+
+Course Code: CSIT121
+Practical Scores: 90, 85, 90
+Overall score: 88.33
+Grade: B+
+
+--------------------------------------------------------------------------------
+
+Scenario 6: Choose 2 to display student list of a subject
+
+----- Menu -------
+1. Search student result
+2. Display student list of a subject
+3. Get result summary
+4. Get student GPA
+5. Quit
+
+Enter your choice: 2
+
+Enter course code to get student list: CSIT121
+Students in course: CSIT121
+Student ID: 1
+Student ID: 2
+
+--------------------------------------------------------------------------------
+
+Scenario 7: Press 3 to get result summary
+
+----- Menu -------
+1. Search student result
+2. Display student list of a subject
+3. Get result summary
+4. Get student GPA
+5. Quit
+
+Enter your choice: 3
+Term: 2024 Q1
+Start Date: 2024-01-01
+End Date: 2024-03-31
+Passes: 5
+Failures: 1
+
+--------------------------------------------------------------------------------
+
+Scenario 8: Choose 4 to get student GPA
+
+----- Menu -------
+1. Search student result
+2. Display student list of a subject
+3. Get result summary
+4. Get student GPA
+5. Quit
+
+Enter your choice: 4
+
+Enter student ID to search: 1
+
+Student: 1
+
+Course Code Grade            Credit                       Points awarded
+CSIT121       B+                6                         3.3 X 6 = 19.8
+CSIT128       A-                6                         3.7 X 6 = 22.2
+CSIT127       A-                4                         3.7 X 4 = 14.8
+                        Total credits: 16       Total Points: 19.8 + 22.2 + 14.8 = 56.8        
+                                                GPA:    56.8 / 16 = 3.55
+--------------------------------------------------------------------------------
+
+Scenario 9: Press 5 to exit the program
+
+----- Menu -------
+1. Search student result
+2. Display student list of a subject
+3. Get result summary
+4. Get student GPA
+5. Quit
+
+Enter your choice: 5
+Exit.

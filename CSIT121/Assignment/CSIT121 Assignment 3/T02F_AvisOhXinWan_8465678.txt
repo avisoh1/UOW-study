@@ -1,0 +1,311 @@
+# Name: Avis Oh Xin Wan
+# Class: T02F
+# UOW ID: 8465678
+# CSIT121 Assignment 3
+
+import csv
+
+# exception class to handle errors
+class ResaleDataException(Exception):
+    pass
+
+class ResaleTransaction:
+    def __init__(self, month, town, flat_type, block, street_name, storey_range, floor_area_sqm, 
+                 flat_model, lease_commence_date, remaining_lease, resale_price):
+        """
+        Constructor about all columns in the Resale2024.csv
+        """
+        self.__month = month
+        self.__town = town
+        self.__flat_type = flat_type
+        self.__block = block
+        self.__street_name = street_name
+        self.__storey_range = storey_range
+        self.__floor_area_sqm = float(floor_area_sqm)		# Check if it is a valid and positive number
+        self.__flat_model = flat_model
+        self.__lease_commence_date = lease_commence_date
+        self.__remaining_lease = remaining_lease
+        self.__resale_price = float(resale_price)		# Check if it is a valid and positive number
+
+    @property
+    def town(self):
+        return self.__town
+
+    @property
+    def flat_type(self):
+        return self.__flat_type
+    
+    @property
+    def flat_model(self):
+        return self.__flat_model
+    
+    @property
+    def price_psf(self):
+        if self.__floor_area_sqm <= 0:
+            raise ResaleDataException(f"Value cannot be less than 0 for floor area: {int(self.__floor_area_sqm)}")
+        # Times 10.7639 to change floor area per sqm to floor area per square foot
+        # Using the resale price divided by floor area. 
+        return round(self.__resale_price / (self.__floor_area_sqm * 10.7639), 2)
+
+    def __str__(self):
+	# str method to print out search result
+        return (f"Month: {self.__month}, Town: {self.__town}, Flat Type: {self.__flat_type}, "
+                f"Block: {self.__block}, Street Name: {self.__street_name}, Storey Range: {self.__storey_range}, "
+                f"Floor Area (sqm): {self.__floor_area_sqm}, Flat Model: {self.__flat_model}, "
+                f"Lease Commence Date: {self.__lease_commence_date}, Remaining Lease: {self.__remaining_lease}, "
+                f"Resale Price: {int(self.__resale_price)}")
+        
+class HDB_Resale_Admin:
+    # State a class variable to write error logs in "error_log.txt"
+    _log_file = "error_log.txt"
+
+    def __init__(self,filename):
+        # Collection of (valid) ResaleTransaction objects
+        self.__resales = []
+        self.__filename = filename 
+    
+    def load(self):
+        # Calculate total errors
+        error_counter = 0
+
+        # Open datafile ("Resale2024.csv") to read and "error_log.txt" to write
+        with open(self.__filename, "r") as infile, open(type(self)._log_file, "w") as outfile:
+
+            # Read the csv file
+            reader = csv.DictReader(infile)
+
+            # Read the file line by line
+            for row in reader:
+                try:
+                    # Read and assign each required field
+                    month = row["month"]
+                    town = row["town"]
+                    flat_type = row["flat_type"]
+                    block = row["block"]
+                    street_name = row["street_name"]
+                    storey_range = row["storey_range"]
+                    floor_area_sqm = row["floor_area_sqm"]
+                    flat_model = row["flat_model"]
+                    lease_commence_date = row["lease_commence_date"]
+                    remaining_lease = row["remaining_lease"]
+                    resale_price = row["resale_price"]
+		
+    		        # Ensure the resale price is float, otherwise raise exception
+                    resale_price = float(resale_price)
+                    if resale_price < 0:
+                        raise ResaleDataException(f"Value cannot be less than 0 for resale price: {int(resale_price)}")
+        
+                    # Create a ResaleTransaction object
+                    resale_transaction = ResaleTransaction(
+                        month, town, flat_type, block, street_name, storey_range, floor_area_sqm,
+                        flat_model, lease_commence_date, remaining_lease, resale_price
+                    )
+                    
+                    # Add the object in self.__resales
+                    self.__resales.append(resale_transaction)
+
+                except (ValueError, ResaleDataException) as e:                    
+                    error_counter += 1                    
+                    # Write the errors in "error_log.txt", including value with wrong datatype and negative value
+                    outfile.write(f"Error in transaction data: {e}\n {row}\n"
+                                  f"Total errors: {error_counter}")
+
+    @property 
+    def resales(self):
+	    # Property to calculate the info loaded
+        return self.__resales
+    
+    def get_town(self):
+        # Return unique town names
+        matching_town = []
+        for r in self.__resales:
+            if r.town not in matching_town:
+                matching_town.append(r.town)
+
+        return matching_town
+    
+    def get_flat_type(self):
+        # Return unique flat_type
+        matching_flat_type = []
+        for r in self.__resales:
+            if r.flat_type not in matching_flat_type:
+                matching_flat_type.append(r.flat_type)
+
+        return matching_flat_type
+    
+    def get_flat_model(self):
+        # Return unique flat models
+        matching_flat_model = []
+        for r in self.__resales:
+            if r.flat_model not in matching_flat_model:
+                matching_flat_model.append(r.flat_model)
+
+        return matching_flat_model
+    
+    # Search with town, flat_type, flat_model and price_psf
+    def search(self, town=None, flat_type=None, flat_model=None, price_psf=None):
+        results = self.__resales
+	
+	# Filter the town if given in search function
+        if town:
+            results = [resale for resale in results if resale.town in town]
+	# Filter the flat_type if given in search function
+        if flat_type:
+            results = [resale for resale in results if resale.flat_type in flat_type]
+	# Filter the flat_model if given in search function 
+        if flat_model:
+            results = [resale for resale in results if resale.flat_model in flat_model]
+        # Treat price_psf as a single value
+        if price_psf is not None:  
+            results = [resale for resale in results if resale.price_psf is not None and resale.price_psf >= price_psf]
+
+        return results
+
+def main():
+    admin = HDB_Resale_Admin("Resale2024.csv")
+    admin.load()  
+
+    # Test results
+    print("Search using all 4 parameters")
+    results_1 = admin.search(["ANG MO KIO","BISHAN"],["5 ROOM"], ["IMPROVED"],725)
+    for result in results_1:
+        print(result)
+    print()
+
+    print("Search using any 3 parameters")
+    results_2 = admin.search(town=["BUKIT PANJANG"], flat_type=["4 ROOM"],flat_model=["PREMIUM APARTMENT"])
+    for result in results_2:
+        print(result)
+    print()
+    
+    print("Search using any 2 parameters")
+    results_3 = admin.search(town=["SERANGOON"],flat_model= ["SIMPLIFIED"])
+    for result in results_3:
+        print(result)
+    print()
+
+    print("Search using 1 parameter")
+    results_4 = admin.search(price_psf=1200)
+    for result in results_4:
+        print(result)
+    print()
+
+    # Calculate the total info loaded
+    print(f"Total entries loaded: {len(admin.resales)}")
+
+if __name__ == "__main__":
+    main()
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Test results
+
+Search using all 4 parameters
+Month: 2024-02, Town: ANG MO KIO, Flat Type: 5 ROOM, Block: 310A, Street Name: ANG MO KIO AVE 1, Storey Range: 10 TO 12, Floor Area (sqm): 121.0, Flat Model: IMPROVED, Lease Commence Date: 2012, Remaining Lease: 87 years 08 months, Resale Price: 1100000
+Month: 2024-04, Town: ANG MO KIO, Flat Type: 5 ROOM, Block: 310B, Street Name: ANG MO KIO AVE 1, Storey Range: 22 TO 24, Floor Area (sqm): 121.0, Flat Model: IMPROVED, Lease Commence Date: 2012, Remaining Lease: 87 years 06 months, Resale Price: 1180000
+Month: 2024-01, Town: ANG MO KIO, Flat Type: 5 ROOM, Block: 700B, Street Name: ANG MO KIO AVE 6, Storey Range: 25 TO 27, Floor Area (sqm): 110.0, Flat Model: IMPROVED, Lease Commence Date: 2003, Remaining Lease: 78 years 08 months, Resale Price: 1050000
+Month: 2024-03, Town: ANG MO KIO, Flat Type: 5 ROOM, Block: 700C, Street Name: ANG MO KIO AVE 6, Storey Range: 19 TO 21, Floor Area (sqm): 111.0, Flat Model: IMPROVED, Lease Commence Date: 2003, Remaining Lease: 78 years 04 months, Resale Price: 1070000
+Month: 2024-01, Town: ANG MO KIO, Flat Type: 5 ROOM, Block: 260B, Street Name: ANG MO KIO ST 21, Storey Range: 25 TO 27, Floor Area (sqm): 113.0, Flat Model: IMPROVED, Lease Commence Date: 2018, Remaining Lease: 93 years 07 months, Resale Price: 1145000
+Month: 2024-01, Town: ANG MO KIO, Flat Type: 5 ROOM, Block: 260B, Street Name: ANG MO KIO ST 21, Storey Range: 07 TO 09, Floor Area (sqm): 113.0, Flat Model: IMPROVED, Lease Commence Date: 2018, Remaining Lease: 93 years 07 months, Resale Price: 1080000
+Month: 2024-04, Town: ANG MO KIO, Flat Type: 5 ROOM, Block: 316A, Street Name: ANG MO KIO ST 31, Storey Range: 07 TO 09, Floor Area (sqm): 110.0, Flat Model: IMPROVED, Lease Commence Date: 2006, Remaining Lease: 81 years, Resale Price: 880000
+Month: 2024-01, Town: ANG MO KIO, Flat Type: 5 ROOM, Block: 455A, Street Name: ANG MO KIO ST 44, Storey Range: 19 TO 21, Floor Area (sqm): 113.0, Flat Model: IMPROVED, Lease Commence Date: 2018, Remaining Lease: 93 years 03 months, Resale Price: 1080000
+Month: 2024-03, Town: ANG MO KIO, Flat Type: 5 ROOM, Block: 455B, Street Name: ANG MO KIO ST 44, Storey Range: 13 TO 15, Floor Area (sqm): 113.0, Flat Model: IMPROVED, Lease Commence Date: 2018, Remaining Lease: 93 years 01 month, Resale Price: 1060000
+Month: 2024-04, Town: ANG MO KIO, Flat Type: 5 ROOM, Block: 455B, Street Name: ANG MO KIO ST 44, Storey Range: 22 TO 24, Floor Area (sqm): 113.0, Flat Model: IMPROVED, Lease Commence Date: 2018, Remaining Lease: 93 years, Resale Price: 1175000
+Month: 2024-01, Town: ANG MO KIO, Flat Type: 5 ROOM, Block: 596A, Street Name: ANG MO KIO ST 52, Storey Range: 16 TO 18, Floor Area (sqm): 110.0, Flat Model: IMPROVED, Lease Commence Date: 2002, Remaining Lease: 78 years, Resale Price: 880000
+Month: 2024-02, Town: ANG MO KIO, Flat Type: 5 ROOM, Block: 596A, Street Name: ANG MO KIO ST 52, Storey Range: 19 TO 21, Floor Area (sqm): 110.0, Flat Model: IMPROVED, Lease Commence Date: 2002, Remaining Lease: 77 years 11 months, Resale Price: 905000
+Month: 2024-04, Town: ANG MO KIO, Flat Type: 5 ROOM, Block: 596B, Street Name: ANG MO KIO ST 52, Storey Range: 25 TO 27, Floor Area (sqm): 110.0, Flat Model: IMPROVED, Lease Commence Date: 2002, Remaining Lease: 77 years 09 months, Resale Price: 968000
+Month: 2024-03, Town: BISHAN, Flat Type: 5 ROOM, Block: 102, Street Name: BISHAN ST 12, Storey Range: 19 TO 21, Floor Area (sqm): 121.0, Flat Model: IMPROVED, Lease Commence Date: 1987, Remaining Lease: 62 years, Resale Price: 950000
+Month: 2024-01, Town: BISHAN, Flat Type: 5 ROOM, Block: 179, Street Name: BISHAN ST 13, Storey Range: 13 TO 15, Floor Area (sqm): 121.0, Flat Model: IMPROVED, Lease Commence Date: 1987, Remaining Lease: 62 years 08 months, Resale Price: 958000
+Month: 2024-01, Town: BISHAN, Flat Type: 5 ROOM, Block: 161, Street Name: BISHAN ST 13, Storey Range: 19 TO 21, Floor Area (sqm): 121.0, Flat Model: IMPROVED, Lease Commence Date: 1988, Remaining Lease: 63 years 07 months, Resale Price: 962000
+Month: 2024-03, Town: BISHAN, Flat Type: 5 ROOM, Block: 183, Street Name: BISHAN ST 13, Storey Range: 10 TO 12, Floor Area (sqm): 121.0, Flat Model: IMPROVED, Lease Commence Date: 1987, Remaining Lease: 62 years 01 month, Resale Price: 980000
+Month: 2024-04, Town: BISHAN, Flat Type: 5 ROOM, Block: 164, Street Name: BISHAN ST 13, Storey Range: 10 TO 12, Floor Area (sqm): 121.0, Flat Model: IMPROVED, Lease Commence Date: 1988, Remaining Lease: 63 years 04 months, Resale Price: 950000
+Month: 2024-04, Town: BISHAN, Flat Type: 5 ROOM, Block: 251, Street Name: BISHAN ST 22, Storey Range: 01 TO 03, Floor Area (sqm): 121.0, Flat Model: IMPROVED, Lease Commence Date: 1992, Remaining Lease: 67 years 05 months, Resale Price: 945000
+Month: 2024-04, Town: BISHAN, Flat Type: 5 ROOM, Block: 408, Street Name: SIN MING AVE, Storey Range: 22 TO 24, Floor Area (sqm): 120.0, Flat Model: IMPROVED, Lease Commence Date: 1986, Remaining Lease: 61 years 06 months, Resale Price: 970000
+Month: 2024-04, Town: BISHAN, Flat Type: 5 ROOM, Block: 405, Street Name: SIN MING AVE, Storey Range: 16 TO 18, Floor Area (sqm): 120.0, Flat Model: IMPROVED, Lease Commence Date: 1986, Remaining Lease: 61 years 03 months, Resale Price: 942000
+
+Search using any 3 parameters
+Month: 2024-01, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 181, Street Name: JELEBU RD, Storey Range: 07 TO 09, Floor Area (sqm): 93.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2003, Remaining Lease: 78 years 04 months, Resale Price: 705888
+Month: 2024-02, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 185, Street Name: JELEBU RD, Storey Range: 28 TO 30, Floor Area (sqm): 91.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2003, Remaining Lease: 78 years 04 months, Resale Price: 758000
+Month: 2024-04, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 182, Street Name: JELEBU RD, Storey Range: 13 TO 15, Floor Area (sqm): 94.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2003, Remaining Lease: 78 years 02 months, Resale Price: 780000
+Month: 2024-01, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 457, Street Name: SEGAR RD, Storey Range: 07 TO 09, Floor Area (sqm): 93.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2012, Remaining Lease: 87 years 11 months, Resale Price: 552000
+Month: 2024-01, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 458, Street Name: SEGAR RD, Storey Range: 13 TO 15, Floor Area (sqm): 93.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2012, Remaining Lease: 87 years 11 months, Resale Price: 560000
+Month: 2024-01, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 478, Street Name: SEGAR RD, Storey Range: 04 TO 06, Floor Area (sqm): 92.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2003, Remaining Lease: 78 years 01 month, Resale Price: 485000
+Month: 2024-01, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 457, Street Name: SEGAR RD, Storey Range: 04 TO 06, Floor Area (sqm): 93.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2012, Remaining Lease: 87 years 10 months, Resale Price: 560000
+Month: 2024-02, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 467, Street Name: SEGAR RD, Storey Range: 13 TO 15, Floor Area (sqm): 90.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2002, Remaining Lease: 77 years 03 months, Resale Price: 485000
+Month: 2024-02, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 480, Street Name: SEGAR RD, Storey Range: 01 TO 03, Floor Area (sqm): 94.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2002, Remaining Lease: 77 years 10 months, Resale Price: 458000
+Month: 2024-02, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 461, Street Name: SEGAR RD, Storey Range: 16 TO 18, Floor Area (sqm): 93.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2015, Remaining Lease: 90 years 07 months, Resale Price: 575000
+Month: 2024-03, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 465, Street Name: SEGAR RD, Storey Range: 07 TO 09, Floor Area (sqm): 95.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2002, Remaining Lease: 77 years 05 months, Resale Price: 478000
+Month: 2024-03, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 482, Street Name: SEGAR RD, Storey Range: 10 TO 12, Floor Area (sqm): 91.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2002, Remaining Lease: 77 years 10 months, Resale Price: 478000
+Month: 2024-03, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 473, Street Name: SEGAR RD, Storey Range: 10 TO 12, Floor Area (sqm): 91.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2003, Remaining Lease: 77 years 11 months, Resale Price: 485000
+Month: 2024-03, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 456, Street Name: SEGAR RD, Storey Range: 10 TO 12, Floor Area (sqm): 93.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2012, Remaining Lease: 87 years 09 months, Resale Price: 583000
+Month: 2024-03, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 474, Street Name: SEGAR RD, Storey Range: 04 TO 06, Floor Area (sqm): 91.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2003, Remaining Lease: 77 years 11 months, Resale Price: 488000
+Month: 2024-03, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 470, Street Name: SEGAR RD, Storey Range: 10 TO 12, Floor Area (sqm): 90.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2002, Remaining Lease: 77 years 02 months, Resale Price: 475000
+Month: 2024-03, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 456, Street Name: SEGAR RD, Storey Range: 10 TO 12, Floor Area (sqm): 93.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2012, Remaining Lease: 87 years 09 months, Resale Price: 590000
+Month: 2024-04, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 461, Street Name: SEGAR RD, Storey Range: 13 TO 15, Floor Area (sqm): 93.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2015, Remaining Lease: 90 years 05 months, Resale Price: 570000
+Month: 2024-04, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 478, Street Name: SEGAR RD, Storey Range: 13 TO 15, Floor Area (sqm): 92.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2003, Remaining Lease: 77 years 10 months, Resale Price: 531000
+Month: 2024-01, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 629, Street Name: SENJA RD, Storey Range: 13 TO 15, Floor Area (sqm): 93.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2004, Remaining Lease: 79 years 10 months, Resale Price: 560000
+Month: 2024-01, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 625, Street Name: SENJA RD, Storey Range: 13 TO 15, Floor Area (sqm): 93.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2004, Remaining Lease: 80 years, Resale Price: 570000
+Month: 2024-02, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 630, Street Name: SENJA RD, Storey Range: 10 TO 12, Floor Area (sqm): 90.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2004, Remaining Lease: 79 years 09 months, Resale Price: 555000
+Month: 2024-02, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 626, Street Name: SENJA RD, Storey Range: 16 TO 18, Floor Area (sqm): 90.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2005, Remaining Lease: 80 years 01 month, Resale Price: 560000
+Month: 2024-03, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 630, Street Name: SENJA RD, Storey Range: 04 TO 06, Floor Area (sqm): 93.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2004, Remaining Lease: 79 years 08 months, Resale Price: 530000
+Month: 2024-04, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 629, Street Name: SENJA RD, Storey Range: 04 TO 06, Floor Area (sqm): 93.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2004, Remaining Lease: 79 years 07 months, Resale Price: 526800
+Month: 2024-04, Town: BUKIT PANJANG, Flat Type: 4 ROOM, Block: 629, Street Name: SENJA RD, Storey Range: 13 TO 15, Floor Area (sqm): 90.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2004, Remaining Lease: 79 years 07 months, Resale Price: 555000
+
+Search using any 2 parameters
+Month: 2024-03, Town: SERANGOON, Flat Type: 3 ROOM, Block: 323, Street Name: SERANGOON AVE 3, Storey Range: 10 TO 12, Floor Area (sqm): 64.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1985, Remaining Lease: 60 years 10 months, Resale Price: 530000
+Month: 2024-01, Town: SERANGOON, Flat Type: 3 ROOM, Block: 203, Street Name: SERANGOON CTRL, Storey Range: 01 TO 03, Floor Area (sqm): 64.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1986, Remaining Lease: 61 years 01 month, Resale Price: 448888
+Month: 2024-04, Town: SERANGOON, Flat Type: 3 ROOM, Block: 203, Street Name: SERANGOON CTRL, Storey Range: 01 TO 03, Floor Area (sqm): 64.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1986, Remaining Lease: 60 years 10 months, Resale Price: 465000
+Month: 2024-04, Town: SERANGOON, Flat Type: 3 ROOM, Block: 210, Street Name: SERANGOON CTRL, Storey Range: 01 TO 03, Floor Area (sqm): 64.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1985, Remaining Lease: 60 years 05 months, Resale Price: 435000
+Month: 2024-01, Town: SERANGOON, Flat Type: 3 ROOM, Block: 154, Street Name: SERANGOON NTH AVE 1, Storey Range: 04 TO 06, Floor Area (sqm): 64.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1986, Remaining Lease: 61 years 06 months, Resale Price: 368888
+Month: 2024-03, Town: SERANGOON, Flat Type: 3 ROOM, Block: 147, Street Name: SERANGOON NTH AVE 1, Storey Range: 04 TO 06, Floor Area (sqm): 64.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1988, Remaining Lease: 63 years 06 months, Resale Price: 390000
+Month: 2024-02, Town: SERANGOON, Flat Type: 4 ROOM, Block: 238, Street Name: SERANGOON AVE 2, Storey Range: 10 TO 12, Floor Area (sqm): 84.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1985, Remaining Lease: 60 years 05 months, Resale Price: 658800
+Month: 2024-03, Town: SERANGOON, Flat Type: 4 ROOM, Block: 239, Street Name: SERANGOON AVE 2, Storey Range: 04 TO 06, Floor Area (sqm): 84.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1985, Remaining Lease: 60 years 05 months, Resale Price: 563000
+Month: 2024-04, Town: SERANGOON, Flat Type: 4 ROOM, Block: 243, Street Name: SERANGOON AVE 2, Storey Range: 01 TO 03, Floor Area (sqm): 89.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1985, Remaining Lease: 60 years 08 months, Resale Price: 615000
+Month: 2024-04, Town: SERANGOON, Flat Type: 4 ROOM, Block: 238, Street Name: SERANGOON AVE 2, Storey Range: 04 TO 06, Floor Area (sqm): 84.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1985, Remaining Lease: 60 years 02 months, Resale Price: 600000
+Month: 2024-01, Town: SERANGOON, Flat Type: 4 ROOM, Block: 237, Street Name: SERANGOON AVE 3, Storey Range: 10 TO 12, Floor Area (sqm): 89.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1985, Remaining Lease: 60 years 11 months, Resale Price: 738888
+Month: 2024-01, Town: SERANGOON, Flat Type: 4 ROOM, Block: 335, Street Name: SERANGOON AVE 3, Storey Range: 04 TO 06, Floor Area (sqm): 84.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1986, Remaining Lease: 61 years 04 months, Resale Price: 630000
+Month: 2024-02, Town: SERANGOON, Flat Type: 4 ROOM, Block: 335, Street Name: SERANGOON AVE 3, Storey Range: 01 TO 03, Floor Area (sqm): 84.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1986, Remaining Lease: 61 years 03 months, Resale Price: 610000
+Month: 2024-02, Town: SERANGOON, Flat Type: 4 ROOM, Block: 335, Street Name: SERANGOON AVE 3, Storey Range: 10 TO 12, Floor Area (sqm): 84.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1986, Remaining Lease: 61 years 03 months, Resale Price: 672000
+Month: 2024-03, Town: SERANGOON, Flat Type: 4 ROOM, Block: 233, Street Name: SERANGOON AVE 3, Storey Range: 10 TO 12, Floor Area (sqm): 84.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1985, Remaining Lease: 60 years 04 months, Resale Price: 585000
+Month: 2024-04, Town: SERANGOON, Flat Type: 4 ROOM, Block: 233, Street Name: SERANGOON AVE 3, Storey Range: 01 TO 03, Floor Area (sqm): 84.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1985, Remaining Lease: 60 years 03 months, Resale Price: 485800
+Month: 2024-04, Town: SERANGOON, Flat Type: 4 ROOM, Block: 332, Street Name: SERANGOON AVE 3, Storey Range: 01 TO 03, Floor Area (sqm): 84.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1986, Remaining Lease: 61 years, Resale Price: 610000
+Month: 2024-04, Town: SERANGOON, Flat Type: 4 ROOM, Block: 237, Street Name: SERANGOON AVE 3, Storey Range: 01 TO 03, Floor Area (sqm): 84.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1985, Remaining Lease: 60 years 08 months, Resale Price: 550000
+Month: 2024-01, Town: SERANGOON, Flat Type: 4 ROOM, Block: 209, Street Name: SERANGOON CTRL, Storey Range: 01 TO 03, Floor Area (sqm): 83.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1985, Remaining Lease: 60 years 10 months, Resale Price: 545000
+Month: 2024-01, Town: SERANGOON, Flat Type: 4 ROOM, Block: 204, Street Name: SERANGOON CTRL, Storey Range: 01 TO 03, Floor Area (sqm): 84.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1985, Remaining Lease: 60 years 10 months, Resale Price: 642000
+Month: 2024-02, Town: SERANGOON, Flat Type: 4 ROOM, Block: 201, Street Name: SERANGOON CTRL, Storey Range: 01 TO 03, Floor Area (sqm): 89.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1985, Remaining Lease: 60 years 09 months, Resale Price: 595000
+Month: 2024-03, Town: SERANGOON, Flat Type: 4 ROOM, Block: 206, Street Name: SERANGOON CTRL, Storey Range: 07 TO 09, Floor Area (sqm): 89.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1985, Remaining Lease: 60 years 11 months, Resale Price: 750000
+Month: 2024-04, Town: SERANGOON, Flat Type: 4 ROOM, Block: 208, Street Name: SERANGOON CTRL, Storey Range: 01 TO 03, Floor Area (sqm): 83.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1985, Remaining Lease: 60 years 07 months, Resale Price: 570000
+Month: 2024-01, Town: SERANGOON, Flat Type: 4 ROOM, Block: 143, Street Name: SERANGOON NTH AVE 1, Storey Range: 10 TO 12, Floor Area (sqm): 83.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1987, Remaining Lease: 62 years 09 months, Resale Price: 495000
+Month: 2024-03, Town: SERANGOON, Flat Type: 4 ROOM, Block: 147, Street Name: SERANGOON NTH AVE 1, Storey Range: 10 TO 12, Floor Area (sqm): 83.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1988, Remaining Lease: 63 years 06 months, Resale Price: 510000
+Month: 2024-03, Town: SERANGOON, Flat Type: 4 ROOM, Block: 143, Street Name: SERANGOON NTH AVE 1, Storey Range: 07 TO 09, Floor Area (sqm): 83.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1987, Remaining Lease: 62 years 08 months, Resale Price: 510000
+Month: 2024-04, Town: SERANGOON, Flat Type: 4 ROOM, Block: 147, Street Name: SERANGOON NTH AVE 1, Storey Range: 07 TO 09, Floor Area (sqm): 83.0, Flat Model: SIMPLIFIED, Lease Commence Date: 1988, Remaining Lease: 63 years 04 months, Resale Price: 500000
+
+Search using 1 parameter
+Month: 2024-03, Town: BUKIT MERAH, Flat Type: 5 ROOM, Block: 9A, Street Name: BOON TIONG RD, Storey Range: 19 TO 21, Floor Area (sqm): 112.0, Flat Model: IMPROVED, Lease Commence Date: 2016, Remaining Lease: 90 years 11 months, Resale Price: 1450000
+Month: 2024-03, Town: CENTRAL AREA, Flat Type: 4 ROOM, Block: 1B, Street Name: CANTONMENT RD, Storey Range: 16 TO 18, Floor Area (sqm): 93.0, Flat Model: TYPE S1, Lease Commence Date: 2011, Remaining Lease: 85 years 10 months, Resale Price: 1220000
+Month: 2024-03, Town: CENTRAL AREA, Flat Type: 4 ROOM, Block: 1G, Street Name: CANTONMENT RD, Storey Range: 31 TO 33, Floor Area (sqm): 95.0, Flat Model: TYPE S1, Lease Commence Date: 2011, Remaining Lease: 85 years 10 months, Resale Price: 1350000
+Month: 2024-03, Town: CENTRAL AREA, Flat Type: 4 ROOM, Block: 1A, Street Name: CANTONMENT RD, Storey Range: 46 TO 48, Floor Area (sqm): 97.0, Flat Model: TYPE S1, Lease Commence Date: 2011, Remaining Lease: 85 years 10 months, Resale Price: 1370000
+Month: 2024-01, Town: CENTRAL AREA, Flat Type: 5 ROOM, Block: 1A, Street Name: CANTONMENT RD, Storey Range: 46 TO 48, Floor Area (sqm): 105.0, Flat Model: TYPE S2, Lease Commence Date: 2011, Remaining Lease: 86 years 01 month, Resale Price: 1450000
+Month: 2024-02, Town: CENTRAL AREA, Flat Type: 5 ROOM, Block: 1F, Street Name: CANTONMENT RD, Storey Range: 31 TO 33, Floor Area (sqm): 106.0, Flat Model: TYPE S2, Lease Commence Date: 2011, Remaining Lease: 86 years, Resale Price: 1400000
+Month: 2024-04, Town: CENTRAL AREA, Flat Type: 5 ROOM, Block: 1C, Street Name: CANTONMENT RD, Storey Range: 37 TO 39, Floor Area (sqm): 107.0, Flat Model: TYPE S2, Lease Commence Date: 2011, Remaining Lease: 85 years 10 months, Resale Price: 1425000
+Month: 2024-02, Town: QUEENSTOWN, Flat Type: 4 ROOM, Block: 86, Street Name: DAWSON RD, Storey Range: 40 TO 42, Floor Area (sqm): 83.0, Flat Model: PREMIUM APARTMENT, Lease Commence Date: 2016, Remaining Lease: 91 years 06 months, Resale Price: 1080000
+Month: 2024-01, Town: TOA PAYOH, Flat Type: 5 ROOM, Block: 139A, Street Name: LOR 1A TOA PAYOH, Storey Range: 40 TO 42, Floor Area (sqm): 117.0, Flat Model: DBSS, Lease Commence Date: 2012, Remaining Lease: 87 years 04 months, Resale Price: 1568888
+Month: 2024-01, Town: TOA PAYOH, Flat Type: 5 ROOM, Block: 138C, Street Name: LOR 1A TOA PAYOH, Storey Range: 31 TO 33, Floor Area (sqm): 117.0, Flat Model: DBSS, Lease Commence Date: 2012, Remaining Lease: 87 years 03 months, Resale Price: 1540000
+
+Total entries loaded: 9083
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# log file content(for error records)
+
+Error in transaction data: Value cannot be less than 0 for resale price: -10
+ {'month': '2024-01', 'town': 'ANG MO KIO', 'flat_type': '3 ROOM', 'block': '308B', 'street_name': 'ANG MO KIO AVE 1', 'storey_range': '25 TO 27', 'floor_area_sqm': '70', 'flat_model': 'MODEL A', 'lease_commence_date': '2012', 'remaining_lease': '87 years 09 months', 'resale_price': '-10'}
+Error in transaction data: could not convert string to float: 'BIG'
+ {'month': '2024-01', 'town': 'ANG MO KIO', 'flat_type': '3 ROOM', 'block': '223', 'street_name': 'ANG MO KIO AVE 1', 'storey_range': '04 TO 06', 'floor_area_sqm': 'BIG', 'flat_model': 'NEW GENERATION', 'lease_commence_date': '1978', 'remaining_lease': '53 years 01 month', 'resale_price': '343800'}
+Error in transaction data: could not convert string to float: '5X'
+ {'month': '2024-01', 'town': 'ANG MO KIO', 'flat_type': '3 ROOM', 'block': '307C', 'street_name': 'ANG MO KIO AVE 1', 'storey_range': '13 TO 15', 'floor_area_sqm': '5X', 'flat_model': 'MODEL A', 'lease_commence_date': '2012', 'remaining_lease': '87 years 08 months', 'resale_price': '600888'}
+Error in transaction data: Value cannot be less than 0 for resale price: -200000
+ {'month': '2024-02', 'town': 'ANG MO KIO', 'flat_type': '3 ROOM', 'block': '216', 'street_name': 'ANG MO KIO AVE 1', 'storey_range': '04 TO 06', 'floor_area_sqm': '73', 'flat_model': 'NEW GENERATION', 'lease_commence_date': '1976', 'remaining_lease': '51 years 03 months', 'resale_price': '-200000'}
+Error in transaction data: could not convert string to float: 'Expensive'
+ {'month': '2024-02', 'town': 'ANG MO KIO', 'flat_type': '3 ROOM', 'block': '219', 'street_name': 'ANG MO KIO AVE 1', 'storey_range': '04 TO 06', 'floor_area_sqm': '82', 'flat_model': 'NEW GENERATION', 'lease_commence_date': '1977', 'remaining_lease': '52 years 05 months', 'resale_price': 'Expensive'}
+Total errors: 5
+

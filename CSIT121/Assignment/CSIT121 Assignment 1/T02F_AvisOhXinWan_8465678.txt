@@ -1,0 +1,334 @@
+# Name: Avis Oh Xin Wan
+# Class: T02F
+# UOW ID: 8465678
+# Assignment: CSIT121 Assignment 1
+
+class OrderItem:
+    def __init__(self,prod:str,unit_price:float,discount:float=0,qty:int=1):
+        """
+        The constructor to initialise the attributes.
+        """
+        self.__prod = prod                        
+        self.__unit_price = unit_price    
+        self.__discount = discount        
+        self.__qty = qty                 
+    
+    def get_prod(self):
+        return self.__prod
+    
+    def get_unit_price(self):
+        return self.__unit_price
+    
+    def get_discount(self):
+        return self.__discount
+    
+    def get_qty(self):
+        return self.__qty
+    
+    def set_qty(self, new_qty):
+        """
+        Setter method to change the value of an object's attributes.
+        """
+        self.__qty = new_qty
+    
+    def get_final_unit_price(self):
+        """
+        Corrected method to get the final price after applying the discount. If no discount, use the original price.
+        """
+        if self.__discount > 0:
+            discounted_price = self.__unit_price * (1 - self.__discount / 100)
+            return discounted_price
+        return self.__unit_price
+    
+    def get_total_amount(self):
+        """
+        The method will compute and return the total amount of an ordered item: unit_price x qty.
+        """
+        self.total_amount = self.__unit_price * self.__qty
+        return self.total_amount
+    
+    def get_discount_amount(self):
+        """
+        The method will compute and return the discount of an ordered item: unit_price x qty x discount.
+        """
+        self.discount_amount = self.get_total_amount() * self.__discount/100
+        return self.discount_amount
+    
+    def get_actual_amount(self):
+        """
+        The method will compute and return: total amount – discount amount
+        """
+        self.actual_amount = self.get_total_amount() - self.get_discount_amount()
+        return self.actual_amount
+    
+    def __str__(self):
+        """
+        The method will return a string containing the following: 
+        - prod. 
+        - qty. 
+        - actual amount.
+        """
+        itemOrdered = "You have ordered:\n"
+        itemOrdered += "{0:<25}{1:<10} {2:<10}\n".format("Product","Qty","Actual Amount")
+        itemOrdered += "{0:<25}{1:<11}${2:<10.2f}\n".format(self.__prod,self.__qty,self.get_actual_amount())
+        return itemOrdered
+    
+class CustOrder:
+    def __init__(self,ref_no:str,recipient:str,address:str,date_ordered:str,date_delivered:str=None,prod:str="Mars",unit_price:float=1.00,discount:float=0,qty:int=1):
+        """
+        The constructor to initialise the attributes.
+        """
+        self.__ref_no = ref_no                  
+        self.__recipient = recipient            
+        self.__address = address                
+        self.__date_ordered = date_ordered      
+        self.__date_delivered = date_delivered  
+        self.__item = [OrderItem(prod,unit_price,discount,qty)]                    
+
+    def set_date_delivered(self, date_delivered:str):
+        self.__date_delivered = date_delivered
+
+    def add_item(self,prod,unit_price,discount=0,qty=1):
+        """
+        This method will add an item to the order. 
+        If the item is already contained in the order, it adds to existing item with increase in QTY.
+        If not, add it into the item list.
+        """
+        for item in self.__item:
+            if item.get_prod() == prod:
+                new_qty = item.get_qty() + qty
+                item.set_qty(new_qty)          
+                return
+        self.__item.append(OrderItem(prod,unit_price,discount,qty))
+
+    def remove_item(self,ordered_item):
+        """
+        The method will remove an item from the order. 
+        If the item is not in the order, the method will return False. 
+        Otherwise, the item will be removed, and the method will return True.
+        """
+        for item in self.__item:
+            if item.get_prod() == ordered_item:
+                self.__item.remove(item)
+                return True
+        print(f"\nItem '{ordered_item}' not found in the order!\n")
+        return False
+    
+    def get_total(self):
+        """
+        The method will compute and return the total amount due which is the amount of all the items contained in the order.
+        """
+        sum = 0
+        for item in self.__item:
+            sum += item.get_actual_amount()
+        return sum
+    
+    def __str__(self):
+        """
+        This method will return a string containing the following: 
+        - ref_no. 
+        - recipient. 
+        - total amount due. 
+        - the detail of each OrderItem (see OrderItem class).
+        """
+        order_str = "=" * 62 + "\n"
+        order_str += "Order ref: {0}".format(self.__ref_no)
+        order_str += "\nName: {0}".format(self.__recipient)
+        order_str += "\nAddress: {0}".format(self.__address)
+        order_str += "\nDate ordered/delivered: {0} / {1}\n\n".format(self.__date_ordered,"-" if self.__date_delivered == None else self.__date_delivered)
+        order_str += "{0:<6}{1:<25}{2:<10}{3:<10}{4:<10}\n".format("S/N","Product", "Price", "Qty", "SubTotal")
+        
+        for idx, item in enumerate(self.__item, 1):
+            prod = item.get_prod()
+            price = item.get_final_unit_price()
+            qty = item.get_qty()
+            subtotal = item.get_actual_amount()
+            discount_str = "*" if item.get_discount() > 0 else " "
+            order_str += "{0:<6}{1:<25}{2:<4.2f}{3:<6}{4:<10}$ {5:>6.2f}\n".format(idx,prod,price,discount_str,qty,subtotal)
+
+        # Add total amount due
+        order_str += "{0:<41}{1:<10}$ {2:>6.2f}\n".format(" ","Total",self.get_total())
+        order_str += "* - discounted price\n"
+        order_str += "=" * 62
+        return order_str
+
+# Test the code
+def main():
+    # Scenario 1: Create OrderItem and CustOrder objects and print it
+    order1= CustOrder("112233","Ong Siew Teng","1, Oxley drive, Singapore 545322",  
+                  "4-Oct-2024 10:00am","5-Oct-2024 10:34am","Mars",2.00,qty=1 )
+    order2= CustOrder("223344","Tan Shao Rui","2, Canberra Link, Singapore 750122",\
+                  "5-Nov-2024 6:25pm",prod="Maggie Mee",unit_price=3.50,discount=20,qty=2)   
+
+    print(order1)
+    print(order2)  
+    
+    # Scenario 2: Add “duplicate” OrderItem object to the CustOrder object
+    #             and print the CustOrder object to verify that duplicate OrderItem QTY has increased
+    order1.add_item("Mars",2.00,qty=1)
+    order2.add_item("Maggie Mee",3.50,20,2)
+
+    print(order1)
+    print(order2)  
+
+    # Scenario 3: Add new OrderItem objects to CustOrder and print CustOrder item
+    order1.add_item("Maggie Mee",3.50,20,5)
+    order1.add_item("Ice Cream",2.00,qty=3)
+    order2.add_item("Ice Cream",2.00,qty=2)
+    order2.add_item("Biscuits",1.80,qty=3)
+
+    print(order1)
+    print(order2)
+
+    # Scenario 4: Remove OrderItem objects and non-existing objects from the CustOrder object
+    #             print the CustOrder object to verify that the removal operations are carried out correctly.
+    order1.remove_item("Mars")        # remove existing objects
+    order1.remove_item("Biscuits")    # remove non-existing objects
+    order2.remove_item("Biscuits")    # remove existing objects
+    order2.remove_item("Mars")        # remove non-existing objects
+
+    print(order1)
+    print(order2)  
+
+    # Scenario 5: Set date delivered
+    order2.set_date_delivered("6-Nov-2024 3:00pm")
+
+    print(order2)
+
+if __name__=="__main__":
+    main()
+
+##################################################################################################################################
+   # Scenario 1: Create OrderItem and CustOrder objects and print it
+
+==============================================================
+Order ref: 112233
+Name: Ong Siew Teng
+Address: 1, Oxley drive, Singapore 545322
+Date ordered/delivered: 4-Oct-2024 10:00am / 5-Oct-2024 10:34am
+
+S/N   Product                  Price     Qty       SubTotal
+1     Mars                     2.00      1         $   2.00
+                                         Total     $   2.00
+* - discounted price
+==============================================================
+==============================================================
+Order ref: 223344
+Name: Tan Shao Rui
+Address: 2, Canberra Link, Singapore 750122
+Date ordered/delivered: 5-Nov-2024 6:25pm / -
+
+S/N   Product                  Price     Qty       SubTotal
+1     Maggie Mee               2.80*     2         $   5.60
+                                         Total     $   5.60
+* - discounted price
+============================================================== 
+ 
+##################################################################################################################################
+    # Scenario 2: Add “duplicate” OrderItem object to the CustOrder object
+    #             and print the CustOrder object to verify that duplicate OrderItem QTY has increased
+     
+==============================================================
+Order ref: 112233
+Name: Ong Siew Teng
+Address: 1, Oxley drive, Singapore 545322
+Date ordered/delivered: 4-Oct-2024 10:00am / 5-Oct-2024 10:34am
+
+S/N   Product                  Price     Qty       SubTotal
+1     Mars                     2.00      2         $   4.00
+                                         Total     $   4.00
+* - discounted price
+==============================================================
+==============================================================
+Order ref: 223344
+Name: Tan Shao Rui
+Address: 2, Canberra Link, Singapore 750122
+Date ordered/delivered: 5-Nov-2024 6:25pm / -
+
+S/N   Product                  Price     Qty       SubTotal
+1     Maggie Mee               2.80*     4         $  11.20
+                                         Total     $  11.20
+* - discounted price
+==============================================================
+
+##################################################################################################################################
+    # Scenario 3: Create several new OrderItem objects and add them to the CustOrder object. 
+    #		  Print out the outcome before the removal.
+
+==============================================================
+Order ref: 112233
+Name: Ong Siew Teng
+Address: 1, Oxley drive, Singapore 545322
+Date ordered/delivered: 4-Oct-2024 10:00am / 5-Oct-2024 10:34am
+
+S/N   Product                  Price     Qty       SubTotal
+1     Mars                     2.00      2         $   4.00
+2     Maggie Mee               2.80*     5         $  14.00
+3     Ice Cream                2.00      3         $   6.00
+                                         Total     $  24.00
+* - discounted price
+==============================================================
+==============================================================
+Order ref: 223344
+Name: Tan Shao Rui
+Address: 2, Canberra Link, Singapore 750122
+Date ordered/delivered: 5-Nov-2024 6:25pm / -
+
+S/N   Product                  Price     Qty       SubTotal
+1     Maggie Mee               2.80*     4         $  11.20
+2     Ice Cream                2.00      2         $   4.00
+3     Biscuits                 1.80      3         $   5.40
+                                         Total     $  20.60
+* - discounted price
+==============================================================
+
+##################################################################################################################################
+    # Scenario 4: Remove OrderItem objects and non-existing objects from the CustOrder object
+    #             print the CustOrder object to verify that the removal operations are carried out correctly.
+      
+Item 'Biscuits' not found in the order!
+
+
+Item 'Mars' not found in the order!
+
+==============================================================
+Order ref: 112233
+Name: Ong Siew Teng
+Address: 1, Oxley drive, Singapore 545322
+Date ordered/delivered: 4-Oct-2024 10:00am / 5-Oct-2024 10:34am
+
+S/N   Product                  Price     Qty       SubTotal
+1     Maggie Mee               2.80*     5         $  14.00
+2     Ice Cream                2.00      3         $   6.00
+                                         Total     $  20.00
+* - discounted price
+==============================================================
+==============================================================
+Order ref: 223344
+Name: Tan Shao Rui
+Address: 2, Canberra Link, Singapore 750122
+Date ordered/delivered: 5-Nov-2024 6:25pm / -
+
+S/N   Product                  Price     Qty       SubTotal
+1     Maggie Mee               2.80*     4         $  11.20
+2     Ice Cream                2.00      2         $   4.00
+                                         Total     $  15.20
+* - discounted price
+==============================================================
+
+##################################################################################################################################
+    # Scenario 5: Set date delivered
+
+==============================================================
+Order ref: 223344
+Name: Tan Shao Rui
+Address: 2, Canberra Link, Singapore 750122
+Date ordered/delivered: 5-Nov-2024 6:25pm / 6-Nov-2024 3:00pm
+
+S/N   Product                  Price     Qty       SubTotal
+1     Maggie Mee               2.80*     4         $  11.20
+2     Ice Cream                2.00      2         $   4.00
+                                         Total     $  15.20
+* - discounted price
+==============================================================
+    

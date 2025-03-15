@@ -1,0 +1,50 @@
+import math
+
+class Point:
+    _start_point_x = 0     # use protected, later child class can reference
+    _start_point_y = 0
+    
+    def __init__(self, x=None, y=None):
+        if x is None and y is None:
+            self.move(Point._start_point_x, Point._start_point_y)
+        else:
+            self.move(x,y)
+            
+    def move(self, x, y):
+        self.__x = y      # make instance variable private
+        self.__y = y
+
+    def reset(self):
+        self.move(Point._start_point_x, Point._start_point_y)
+
+    def calculate_distance(self, other_point):
+        return math.sqrt((self.__x - other_point.__x)**2 + (self.__y - other_point.__y)**2)
+    
+    @classmethod
+    def change_start_point(cls,x,y):   # cls is the shorthand for class
+        cls._start_point_x = x
+        cls._start_point_y = y
+        
+    @staticmethod
+    def greet():
+        print("Hello world")
+    
+    def __secret_message(self):
+        print("This is a secret!")
+        
+    def __str__(self):
+        return "({}, {})".format(self.__x, self.__y)
+        
+
+print(Point._start_point_x, Point._start_point_y)
+p1 = Point()
+print(p1.__str__())
+p1._Point__secret_message()  # still can access this private method
+                             # python do not restrict, but make it difficult
+
+Point.change_start_point(10,10)  # call class method
+
+p2 = Point()
+print(p2)
+
+print(p1.calculate_distance(p2))

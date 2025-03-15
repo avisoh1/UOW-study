@@ -1,0 +1,59 @@
+<diagram program="umletino" version="15.1"><zoom_level>12</zoom_level><element><id>UMLClass</id><coordinates><x>684</x><y>0</y><w>228</w><h>252</h></coordinates><panel_attributes>Subject
+--
+-code: string
+-name: string
+-teacher: Teacher
+-students: Students[]
+--
++get_code():string
++get_name():string
++get_teacher():Teacher
++get_students(): Students[]
++add_student(Student)
++remove_student(Student)
++set_teacher(Teacher)</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>216</x><y>12</y><w>216</w><h>216</h></coordinates><panel_attributes>Teacher
+--
+-staff_id: string
+-name: string
+-subjects: Subject[]
+--
++get_staff_id(): string
++get_name(): string
++get_subjects(): Subject[]
++add_subject(Subject)
++remove_subject(Subject)</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>420</x><y>108</y><w>288</w><h>60</h></coordinates><panel_attributes>lt=-
+m1=1..n
+m2=1
+teaches &gt;</panel_attributes><additional_attributes>220;20;10;20</additional_attributes></element><element><id>UMLClass</id><coordinates><x>660</x><y>384</y><w>216</w><h>204</h></coordinates><panel_attributes>Student
+--
+-student_id: string
+-name: string
+-subjects: Subject[]
+--
++get_student_id(): string
++get_name(): string
++get_subjects(): Subject[]
++add_subject(Subject)
++remove_subject(Subject)</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>768</x><y>240</y><w>96</w><h>168</h></coordinates><panel_attributes>lt=-
+m1=1..n
+m2=1..n
+enrolls &gt;</panel_attributes><additional_attributes>10;120;10;10</additional_attributes></element><element><id>UMLClass</id><coordinates><x>192</x><y>360</y><w>276</w><h>228</h></coordinates><panel_attributes>EnrollmentSystem
+--
+-subjects: Subject[]
+-teachers: Teacher[]
+-students: Student[]
+--
++create_subject(): Subject
++create_teacher(): Teacher
++create_student(): Student
++find_subject_by_code(string): Subject
++find_student_by_id(string): Student</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>324</x><y>216</y><w>108</w><h>168</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=1..n
+contains &gt;</panel_attributes><additional_attributes>10;120;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>420</x><y>204</y><w>288</w><h>180</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=1..n
+contains &gt;</panel_attributes><additional_attributes>10;130;220;10</additional_attributes></element><element><id>Relation</id><coordinates><x>456</x><y>492</y><w>228</w><h>60</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=1..n
+contains &gt;</panel_attributes><additional_attributes>10;20;170;20</additional_attributes></element></diagram>

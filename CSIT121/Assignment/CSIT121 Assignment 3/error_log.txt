@@ -1,0 +1,11 @@
+Error in transaction data: Value cannot be less than 0 for resale price: -10
+ {'month': '2024-01', 'town': 'ANG MO KIO', 'flat_type': '3 ROOM', 'block': '308B', 'street_name': 'ANG MO KIO AVE 1', 'storey_range': '25 TO 27', 'floor_area_sqm': '70', 'flat_model': 'MODEL A', 'lease_commence_date': '2012', 'remaining_lease': '87 years 09 months', 'resale_price': '-10'}
+Total errors: 1Error in transaction data: could not convert string to float: 'BIG'
+ {'month': '2024-01', 'town': 'ANG MO KIO', 'flat_type': '3 ROOM', 'block': '223', 'street_name': 'ANG MO KIO AVE 1', 'storey_range': '04 TO 06', 'floor_area_sqm': 'BIG', 'flat_model': 'NEW GENERATION', 'lease_commence_date': '1978', 'remaining_lease': '53 years 01 month', 'resale_price': '343800'}
+Total errors: 2Error in transaction data: could not convert string to float: '5X'
+ {'month': '2024-01', 'town': 'ANG MO KIO', 'flat_type': '3 ROOM', 'block': '307C', 'street_name': 'ANG MO KIO AVE 1', 'storey_range': '13 TO 15', 'floor_area_sqm': '5X', 'flat_model': 'MODEL A', 'lease_commence_date': '2012', 'remaining_lease': '87 years 08 months', 'resale_price': '600888'}
+Total errors: 3Error in transaction data: Value cannot be less than 0 for resale price: -200000
+ {'month': '2024-02', 'town': 'ANG MO KIO', 'flat_type': '3 ROOM', 'block': '216', 'street_name': 'ANG MO KIO AVE 1', 'storey_range': '04 TO 06', 'floor_area_sqm': '73', 'flat_model': 'NEW GENERATION', 'lease_commence_date': '1976', 'remaining_lease': '51 years 03 months', 'resale_price': '-200000'}
+Total errors: 4Error in transaction data: could not convert string to float: 'Expensive'
+ {'month': '2024-02', 'town': 'ANG MO KIO', 'flat_type': '3 ROOM', 'block': '219', 'street_name': 'ANG MO KIO AVE 1', 'storey_range': '04 TO 06', 'floor_area_sqm': '82', 'flat_model': 'NEW GENERATION', 'lease_commence_date': '1977', 'remaining_lease': '52 years 05 months', 'resale_price': 'Expensive'}
+Total errors: 5

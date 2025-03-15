@@ -1,0 +1,32 @@
+Daily Route(destination, departure-date, departure-time, arrival-time, fare, emp, bus)
+PK: (destination, departure-date, departure-time)
+FK1: emp references Employee (emp-id)
+FK2: emp references Driver (emp-id)
+FK3: bus references Coach (vehicle-id)
+
+Employee (emp-id, name, email)
+PK:(emp-id)
+CK:(email)
+
+Driver(emp-id, license)
+PK:(emp-id)
+CK:(licence)
+FK: emp-id references Employee(id)
+
+Mechanic(emp-id, certificate)
+PK:(emp-id)
+FK: emp-id references Employee(id)
+
+Coach(vehicle-id, make, model, capacity)
+PK:(vehicle-id)
+
+Service(vehicle-id, svc-date, work done)
+PK:(vehicle-id, svc-date)
+FK: vehicle-id references Coach(vehicle-id)
+
+Done by(vehicle-id, svc-date, emp-id)
+PK:(vehicle-id, svc-date, emp-id)
+FK1:(vehicle-id, svc-date) references Service(vehicle-id, svc-date)
+FK2:emp-id references Mechanic(emp-id)
+
+

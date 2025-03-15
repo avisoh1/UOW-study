@@ -1,0 +1,116 @@
+Avis Oh Xin Wan UOW ID:8465678
+Assignment 2 Task 1 
+CREATE TABLES
+CREATE TABLE Diploma(
+    code    	VARCHAR(5) 	NOT NULL,
+    name 	VARCHAR(50) 	NOT NULL,
+ CONSTRAINT Diploma_PK PRIMARY KEY(code),
+ CONSTRAINT Diploma_CK UNIQUE(name));
+ 
+ CREATE TABLE Module(
+    code    	VARCHAR(4) 	NOT NULL,
+    name 	VARCHAR(30) 	NOT NULL,
+    hours	DECIMAL(2)	NOT NULL,
+    fee		DECIMAL(4)	NOT NULL,
+ CONSTRAINT Module_PK PRIMARY KEY(code),
+ CONSTRAINT Hours_CH1 CHECK (hours > 30) );
+ 
+CREATE TABLE Dipmod(
+    dip_code    VARCHAR(5) 	NOT NULL,
+    mod_code 	VARCHAR(4)  	NOT NULL,
+ CONSTRAINT Dipmod_FK1 FOREIGN KEY(dip_code) REFERENCES Diploma(code),
+ CONSTRAINT Dipmod_FK2 FOREIGN KEY(mod_code) REFERENCES Module(code) );
+ 
+ CREATE TABLE Lecturer(
+    emp_id    	  VARCHAR(4) 	NOT NULL,
+    name 	  VARCHAR(25)   NOT NULL,
+    dob		  DATE		NOT NULL,
+    gender	  VARCHAR(1)	NOT NULL,
+    email	  VARCHAR(35)	NOT NULL,
+ CONSTRAINT Lecturer_PK PRIMARY KEY(emp_id),
+ CONSTRAINT Lecturer_CK UNIQUE(email),
+ CONSTRAINT Gender_CH1 CHECK (gender = 'M' OR gender = 'F') );
+ 
+ CREATE TABLE Specialty(
+    emp_id   VARCHAR(4) 	NOT NULL,
+    topic    VARCHAR(35) 	NOT NULL,
+ CONSTRAINT Specialty_FK1 FOREIGN KEY(emp_id) REFERENCES Lecturer(emp_id));
+
+ALTER TABLES
+-- B) ALTER TABLE STATEMENTS
+-- Add a column called head to the Diploma table. The column serves as a foreign key to the Lecturer table.
+ALTER TABLE Diploma
+ADD COLUMN head VARCHAR(30) NULL,
+ADD CONSTRAINT Diploma_FK1 FOREIGN KEY(head)
+	REFERENCES Lecturer(emp_id)
+    ON UPDATE CASCADE
+    ON DELETE SET NULL;
+
+INSERT INTO Lecturer VALUES 
+        ( 'E001'
+        , 'Tan Xiu Kee'
+        , STR_TO_DATE('10-02-1972', '%d-%m-%Y')
+        ,'F'
+        ,'xktan@outlook.com'
+        );
+
+INSERT INTO Diploma VALUES 
+        ( 'DipIT'
+        , 'Diploma in Information Technology'
+        , 'E001'
+        );
+        
+-- When the lecturer who is the head of a diploma changes his emp_id, Diploma.head must be updated automatically.
+UPDATE Lecturer
+SET   emp_id = 'E002'
+WHERE email = 'xktan@outlook.com';
+
+-- When a lecturer who is the head of a diploma leaves the institute and his record is deleted. Diploma.head must be set to null automatically.
+DELETE FROM Lecturer
+WHERE emp_id='E002';
+
+Assignment 2 Task 2
+-- A)
+SELECT C.code, C.category, C.name, C.level
+FROM course C LEFT JOIN offeredcourse O
+ON C.code= O.code 
+WHERE O.code IS NULL;
+
+# code	category	name		level
+C003	IT		Programming	3
+C033	Dessert		Puddings	3
+
+-- B) 
+SELECT T.empId, T.name, T.dob, T.trainYears
+FROM offeredcourse O JOIN trainer T
+ON O.trainer = T.empId
+GROUP BY trainer
+HAVING COUNT(trainer) >2
+ORDER BY trainYears DESC;
+
+# empId	name		dob		trainYears
+T001	Ding Dong	1980-10-20	8
+T032	Ning Ning	1995-09-28	5
+T008	Liew Ming	1998-11-20	3
+T022	Long Tian	1993-08-20	3
+T031	Ming Yuan	1995-03-28	3
+
+
+-- C)
+SELECT C.code, C.category, C.name, C.level
+FROM course C JOIN offeredcourse O
+ON C.code= O.code
+WHERE MONTH(startDate) = 6;
+
+# code	category	name		level
+C031	Dessert		Cupcakes	1
+C032	Dessert		Brownies	2
+
+-- D)
+INSERT INTO Trainer VALUES ('T091', 'Zha Teck', '1985-10-25', 10);
+INSERT INTO Qualification VALUES ('T091', 'Bsc Business, MBA');
+
+-- E)
+UPDATE course
+SET level = level ++1 
+WHERE category = 'Dessert';

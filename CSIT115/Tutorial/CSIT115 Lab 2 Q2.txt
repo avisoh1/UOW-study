@@ -1,0 +1,28 @@
+Employee (emp-no, name, gender, dob, email) 
+PK: (emp-no)
+CK: (email)
+
+EmpHistory (end-date, job-title, start-date, emp-no)
+PK: (emp-no, start-date)
+FK: (emp-no) references Employee (emp-no)
+
+ProjManager (emp-no, mgr-certification, date-certified) 
+PK: (emp-no)
+FK: (emp-no) references Employee (emp-no)
+
+SWEngineer (emp-no, speciality)
+PK: (emp-no)
+FK: (emp-no) references Employee (emp-no)
+
+Project (code, description, start-date, duration, budget, manager)
+PK:(code)
+FK:(manager) references ProjManager(emp-no)
+
+MonthlyLog(programmer, code, year, month, hours-worked)
+PK:(programmer, code, year, month)
+FK1:(programmer) references SWEngineer (emp-no)
+FK2:(code) references Project (code)
+
+SystemTest(code, start-date, end-date, result, remarks)
+PK: (code, start-date)
+FK: (code) references Project (code)

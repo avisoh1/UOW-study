@@ -1,0 +1,33 @@
+SELECT * FROM DIPLOMA;
+SELECT * FROM MODULE;
+SELECT * FROM DIPMOD;
+SELECT * FROM LECTURER;
+SELECT * FROM SPECIALTY;
+
+INSERT INTO DIPLOMA VALUES 
+        ( 'DipIT'
+        , 'Diploma in Information Technology'
+        , 'E001'
+        );
+
+INSERT INTO LECTURER VALUES 
+        ( 'E001'
+        , 'Tan Xiu Kee'
+        , STR_TO_DATE('10-02-1972', '%d-%m-%Y')
+        ,'F'
+        ,'xktan@outlook.com'
+        );
+
+-- B) ALTER TABLE STATEMENTS
+ALTER TABLE DIPLOMA
+ADD COLUMN head VARCHAR(30) NULL,
+ADD CONSTRAINT DIPLOMA_FK1 FOREIGN KEY(head)
+	REFERENCES LECTURER(emp_id)
+    ON UPDATE CASCADE
+    ON DELETE SET NULL;
+
+DELETE FROM LECTURER
+WHERE emp_id='E001';
+
+SELECT * FROM DIPLOMA;
+
